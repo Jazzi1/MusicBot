@@ -30,4 +30,7 @@ def main(token: str) -> None:
 
 if __name__ == '__main__':
     with open('token.txt', 'r') as t:
-        main(t.read())
+        m = t.read()
+
+    main(m)
+
