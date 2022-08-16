@@ -5,7 +5,8 @@ import telegram.error
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters, ConversationHandler
 from telegram import Update, ReplyKeyboardMarkup
 from mutagen.mp3 import MP3
-from musicfunctions import get_random_music, get_current_music, get_music_by_genre
+from musicfunctions import get_random_music, get_current_music, get_music_by_genre, get_music_by_artist
+from musicfunctions import get_music_by_name, get_music_by_name_and_artist
 
 
 keyboard = [['Найти песню'], ['Найти по жанру']]
@@ -74,6 +75,38 @@ def error_handler(update: Update, context: CallbackContext):
         os.kill(os.getpid(), signal.SIGINT)
 
 
+def get_by_id_command(update:Update, context: CallbackContext):
+    id_music = int(update.effective_message.text.split(' ')[1])
+    music_path = get_current_music(id_music, full_path=True)
+    send_audio(update, music_path)
+
+
+def get_by_name_command(update:Update, context: CallbackContext):
+    name = update.effective_message.text.split(' ')[1]
+    music_path = get_music_by_name(name, full_path=True)
+    send_audio(update, music_path)
+
+
+def get_by_artist_command(update:Update, context: CallbackContext):
+    artist = update.effective_message.text.split(' ')[1]
+    music_paths = get_music_by_artist(artist, full_path=True)
+    for i in music_paths:
+        send_audio(update, i)
+
+
+def get_by_genre_command(update:Update, context: CallbackContext):
+    genre = update.effective_message.text.split(' ')[1]
+    music_paths = get_music_by_artist(genre, full_path=True)
+    for i in music_paths:
+        send_audio(update, i)
+
+
+def get_music_by_name_and_artist_command(update: Update, context: CallbackContext):
+    name_artist = update.effective_message.text.split(' ')[1]
+    music_path = get_music_by_artist(name_artist, full_path=True)
+    send_audio(update, music_path)
+
+
 def main(token: str) -> None:
     updater = Updater(token=token)
 
@@ -82,6 +115,11 @@ def main(token: str) -> None:
     dispatcher.add_handler(CommandHandler('send_random_audio', send_random_audio_command))
     dispatcher.add_handler(CommandHandler('test_err', send_error))
     dispatcher.add_error_handler(error_handler)
+    dispatcher.add_handler(CommandHandler('get_by_id', get_by_id_command))
+    dispatcher.add_handler(CommandHandler('get_by_artist', get_by_artist_command))
+    dispatcher.add_handler(CommandHandler('get_by_name', get_by_name_command))
+    dispatcher.add_handler(CommandHandler('get_by_genre', get_by_genre_command))
+    dispatcher.add_handler(CommandHandler('get_music_by_name_and_artist', get_music_by_name_and_artist_command))
 
     get_current_music_handler = ConversationHandler(
         entry_points=[MessageHandler(Filters.regex('Найти песню'), current_music_command)],
